@@ -1,47 +1,11 @@
-export default function Page() {
-  return (
-    <main
-      style={{
-        colorScheme: 'light dark',
-        position: 'relative',
-        display: 'flex',
-        minHeight: '100vh',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'light-dark(#fff, #000)',
-        color: 'light-dark(#000, #fff)',
-      }}
-    >
-      <svg
-        aria-hidden="true"
-        style={{ width: 80, height: 80 }}
-        width={80}
-        height={80}
-        fill="none"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-        stroke="currentColor"
-        strokeWidth="0.5"
-      >
-        <path
-          d="M14.2 14.2H17V6.9375C17 4.76288 15.2371 3 13.0625 3H5.8V5.8M14.2 14.2V7.79063L7.79062 14.2H14.2ZM14.2 14.2V17H6.9375C4.76288 17 3 15.2371 3 13.0625V5.8H5.8M5.8 5.8V12.2313L12.2313 5.8H5.8Z"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <p
-        style={{
-          position: 'absolute',
-          left: '50%',
-          top: 'calc(50% + 56px)',
-          transform: 'translateX(-50%)',
-          whiteSpace: 'nowrap',
-          fontSize: '14px',
-          fontWeight: 500,
-          color: 'light-dark(#71717a, #a1a1aa)',
-        }}
-      >
-        Your v0 generation will show here.
-      </p>
-    </main>
-  )
-}
+'use client'
+
+import { useMemo, useState } from 'react'
+import Link from 'next/link'
+import { ArrowRight, BarChart3, Bookmark, Building2, Check, ChevronDown, Compass, GraduationCap, MapPin, Search, SlidersHorizontal, Star, Users, X } from 'lucide-react'
+import { colleges } from '@/data/colleges'
+import { readIds, writeIds } from '@/lib/storage'
+
+function Header({ savedCount, compareCount }: { savedCount:number; compareCount:number }) { return <header className="border-b bg-background"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4"><Link href="/" className="flex items-center gap-2 font-semibold tracking-tight"><span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground"><Compass data-icon="inline-start" /></span><span className="text-lg">CampusFind</span></Link><nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex"><Link href="/colleges" className="hover:text-foreground">Explore colleges</Link><Link href="/compare" className="hover:text-foreground">Compare <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs">{compareCount}</span></Link><Link href="/saved" className="hover:text-foreground">Saved <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs">{savedCount}</span></Link></nav><button className="rounded-lg border px-3 py-2 text-sm font-medium">Sign in</button></div></header> }
+function CollegeCard({ c, saved, compared, onSave, onCompare }: { c:any; saved:boolean; compared:boolean; onSave:()=>void; onCompare:()=>void }) { return <article className="group rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="flex items-start justify-between"><div className="grid size-12 place-items-center rounded-xl text-sm font-bold text-foreground" style={{backgroundColor:c.accent}}>{c.shortName.slice(0,3)}</div><button aria-label={saved?'Remove saved college':'Save college'} onClick={onSave} className="rounded-lg p-2 text-muted-foreground hover:bg-muted">{saved?<Bookmark fill="currentColor" className="text-primary"/>:<Bookmark/>}</button></div><Link href={`/colleges/${c.id}`}><h3 className="mt-4 font-semibold group-hover:text-primary">{c.name}</h3><p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin data-icon="inline-start"/> {c.city}, {c.state}</p></Link><div className="mt-4 flex items-center gap-4 text-sm"><span className="flex items-center gap-1 font-semibold"><Star fill="currentColor" className="text-amber-500"/> {c.rating}</span><span className="text-muted-foreground">{c.reviews} reviews</span></div><div className="mt-4 flex items-center justify-between border-t pt-3 text-sm"><span className="text-muted-foreground">Avg. fees <strong className="text-foreground">{c.fees}</strong></span><button onClick={onCompare} className="flex items-center gap-1 font-medium text-primary">{compared?<Check/>:<BarChart3/>} {compared?'Added':'Compare'}</button></div></article> }
+export default function Home() { const [q,setQ]=useState(''); const [saved,setSaved]=useState<string[]>([]); const [compare,setCompare]=useState<string[]>([]); const [type,setType]=useState('All types'); const [sort,setSort]=useState('Top rated'); const [loaded,setLoaded]=useState(false); useMemo(()=>{ if(!loaded){setSaved(readIds('campusfind-saved'));setCompare(readIds('campusfind-compare'));setLoaded(true)} return null },[loaded]); const filtered=colleges.filter(c=>(!q||`${c.name} ${c.city} ${c.state} ${c.courses.join(' ')}`.toLowerCase().includes(q.toLowerCase()))&&(type==='All types'||c.type===type)).sort((a,b)=>sort==='Top rated'?b.rating-a.rating:a.name.localeCompare(b.name)); const toggle=(id:string,key:string,setter:any,current:string[])=>{const next=current.includes(id)?current.filter(x=>x!==id):key==='compare'&&current.length>=3?current:[...current,id];setter(next);writeIds(`campusfind-${key}`,next)}; return <><Header savedCount={saved.length} compareCount={compare.length}/><main><section className="border-b bg-muted/40"><div className="mx-auto max-w-7xl px-5 py-16 md:py-24"><div className="max-w-2xl"><p className="mb-5 flex items-center gap-2 text-sm font-semibold text-primary"><GraduationCap/> Make your next move count</p><h1 className="text-balance text-4xl font-semibold tracking-tight md:text-6xl">Find a college that feels like <span className="text-primary">your place.</span></h1><p className="mt-5 max-w-xl text-pretty text-lg leading-8 text-muted-foreground">Compare courses, costs, campus life, and student reviews — all in one clear, honest place.</p></div><div className="mt-9 flex max-w-3xl flex-col gap-3 rounded-2xl border bg-background p-3 shadow-sm md:flex-row"><div className="flex flex-1 items-center gap-3 px-3"><Search className="text-muted-foreground"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search colleges, cities, or courses" className="w-full bg-transparent py-3 outline-none"/></div><button onClick={()=>document.getElementById('results')?.scrollIntoView({behavior:'smooth'})} className="rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground">Search colleges</button></div><div className="mt-5 flex flex-wrap gap-2 text-sm text-muted-foreground"><span>Popular:</span>{['Engineering','MBA','Delhi','Bengaluru'].map(x=><button key={x} onClick={()=>setQ(x)} className="rounded-full border bg-background px-3 py-1.5 hover:border-primary hover:text-primary">{x}</button>)}</div></div></section><section id="results" className="mx-auto max-w-7xl px-5 py-14"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><p className="text-sm font-semibold text-primary">EXPLORE WITH CONFIDENCE</p><h2 className="mt-2 text-3xl font-semibold tracking-tight">Popular colleges</h2><p className="mt-2 text-muted-foreground">A handpicked starting point for your shortlist.</p></div><div className="flex gap-2"><select value={type} onChange={e=>setType(e.target.value)} className="rounded-lg border bg-background px-3 py-2 text-sm"><option>All types</option><option>Government</option><option>Private</option></select><select value={sort} onChange={e=>setSort(e.target.value)} className="rounded-lg border bg-background px-3 py-2 text-sm"><option>Top rated</option><option>Name</option></select></div></div><div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{filtered.slice(0,8).map(c=><CollegeCard key={c.id} c={c} saved={saved.includes(c.id)} compared={compare.includes(c.id)} onSave={()=>toggle(c.id,'saved',setSaved,saved)} onCompare={()=>toggle(c.id,'compare',setCompare,compare)}/>)}</div><div className="mt-10 flex items-center justify-center"><Link href="/colleges" className="flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium hover:bg-muted">View all colleges <ArrowRight/></Link></div></section><section className="border-y bg-card"><div className="mx-auto grid max-w-7xl gap-8 px-5 py-14 md:grid-cols-3"><div><Users className="text-primary"/><h3 className="mt-4 font-semibold">Built for real decisions</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Clear information without the noise, so your shortlist feels like yours.</p></div><div><SlidersHorizontal className="text-primary"/><h3 className="mt-4 font-semibold">Filter what matters</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Find the right fit by city, course, budget, and campus type.</p></div><div><Building2 className="text-primary"/><h3 className="mt-4 font-semibold">Compare side by side</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Keep your options together and make a confident call.</p></div></div></section></main><footer className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-sm text-muted-foreground md:flex-row md:justify-between"><span>© 2026 CampusFind</span><span>Made for the next generation of students.</span></footer></> }
