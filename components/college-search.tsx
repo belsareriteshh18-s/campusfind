@@ -78,7 +78,7 @@ export function CollegeSearch() {
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <aside className="hidden w-64 shrink-0 rounded-2xl border bg-card p-5 lg:sticky lg:top-20 lg:block">
-          {filterPanel}
+          {renderFilterPanel(true)}
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col gap-5">
@@ -121,7 +121,7 @@ export function CollegeSearch() {
           <SheetHeader>
             <SheetTitle>Filters</SheetTitle>
           </SheetHeader>
-          <div className="p-4 pb-24">{filterPanel}</div>
+          <div className="p-4 pb-24">{renderFilterPanel(false)}</div>
         </SheetContent>
       </Sheet>
     </div>
