@@ -67,14 +67,14 @@ function commit(kind: SelectionKind, ids: string[]) {
   emit()
 }
 
-/** Server render and the first client render both see the empty snapshot, so hydration stays stable. */
-const getServerSnapshot = () => EMPTY
+/** Server render and the first client render both see the empty list, so hydration stays stable. */
+const EMPTY_IDS: string[] = []
 
 export function useSelection(kind: SelectionKind) {
   const ids = useSyncExternalStore(
     subscribe,
     () => snapshot[kind],
-    getServerSnapshot,
+    () => EMPTY_IDS,
   )
 
   const toggle = useCallback(

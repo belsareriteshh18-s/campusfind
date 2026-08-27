@@ -50,7 +50,7 @@ export function CollegeSearch() {
     ],
   )
 
-  const filterPanel = (
+  const renderFilterPanel = (showHeading: boolean) => (
     <FilterPanel
       query={query}
       facets={data?.facets}
@@ -59,6 +59,7 @@ export function CollegeSearch() {
       onToggleFacet={toggleFacet}
       onUpdate={update}
       onReset={reset}
+      showHeading={showHeading}
     />
   )
 

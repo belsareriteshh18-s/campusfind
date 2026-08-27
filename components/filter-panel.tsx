@@ -23,6 +23,7 @@ type Props = {
   onToggleFacet: (key: FacetKey, value: string) => void
   onUpdate: (patch: Partial<SearchQuery>) => void
   onReset: () => void
+  showHeading?: boolean
 }
 
 const ratingOptions = [0, 4, 4.5, 4.8]
@@ -35,14 +36,21 @@ export function FilterPanel({
   onToggleFacet,
   onUpdate,
   onReset,
+  showHeading = true,
 }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-semibold">
-          Filters
-          {activeFilterCount > 0 ? <Badge variant="secondary">{activeFilterCount}</Badge> : null}
-        </h2>
+        {showHeading ? (
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            Filters
+            {activeFilterCount > 0 ? <Badge variant="secondary">{activeFilterCount}</Badge> : null}
+          </h2>
+        ) : (
+          <span className="text-sm text-muted-foreground">
+            {activeFilterCount > 0 ? `${activeFilterCount} active` : "No filters applied"}
+          </span>
+        )}
         <Button
           variant="ghost"
           size="sm"

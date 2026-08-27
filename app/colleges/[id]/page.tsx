@@ -42,7 +42,7 @@ export default async function CollegeDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-8 px-5 py-8">
-      <Button variant="ghost" size="sm" className="self-start text-muted-foreground" render={<Link href="/colleges" />}>
+      <Button variant="ghost" size="sm" className="self-start text-muted-foreground" nativeButton={false} render={<Link href="/colleges" />}>
         <ArrowLeft data-icon="inline-start" />
         Back to search
       </Button>

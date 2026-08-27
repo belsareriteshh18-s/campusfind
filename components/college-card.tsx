@@ -114,7 +114,7 @@ function CollegeCardBase({
           {compared ? <Check data-icon="inline-start" /> : <BarChart3 data-icon="inline-start" />}
           {compared ? "In compare" : "Compare"}
         </Button>
-        <Button variant="ghost" size="sm" render={<Link href={`/colleges/${college.id}`} />}>
+        <Button variant="ghost" size="sm" nativeButton={false} render={<Link href={`/colleges/${college.id}`} />}>
           Details
         </Button>
       </div>

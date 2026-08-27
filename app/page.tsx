@@ -1,11 +1,138 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { ArrowRight, BarChart3, Bookmark, Building2, Check, ChevronDown, Compass, GraduationCap, MapPin, Search, SlidersHorizontal, Star, Users, X } from 'lucide-react'
-import { colleges } from '@/data/colleges'
-import { readIds, writeIds } from '@/lib/storage'
+import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { ArrowRight, BarChart3, GraduationCap, SlidersHorizontal, Sparkles } from "lucide-react"
+import { CollegeCard } from "@/components/college-card"
+import { SearchInput } from "@/components/search-input"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { colleges } from "@/data/colleges"
+import { useSelection } from "@/lib/selection-store"
+import { cn } from "@/lib/utils"
 
-function Header({ savedCount, compareCount }: { savedCount:number; compareCount:number }) { return <header className="border-b bg-background"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4"><Link href="/" className="flex items-center gap-2 font-semibold tracking-tight"><span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground"><Compass data-icon="inline-start" /></span><span className="text-lg">CampusFind</span></Link><nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex"><Link href="/colleges" className="hover:text-foreground">Explore colleges</Link><Link href="/compare" className="hover:text-foreground">Compare <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs">{compareCount}</span></Link><Link href="/saved" className="hover:text-foreground">Saved <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs">{savedCount}</span></Link></nav><button className="rounded-lg border px-3 py-2 text-sm font-medium">Sign in</button></div></header> }
-function CollegeCard({ c, saved, compared, onSave, onCompare }: { c:any; saved:boolean; compared:boolean; onSave:()=>void; onCompare:()=>void }) { return <article className="group rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="flex items-start justify-between"><div className="grid size-12 place-items-center rounded-xl text-sm font-bold text-foreground" style={{backgroundColor:c.accent}}>{c.shortName.slice(0,3)}</div><button aria-label={saved?'Remove saved college':'Save college'} onClick={onSave} className="rounded-lg p-2 text-muted-foreground hover:bg-muted">{saved?<Bookmark fill="currentColor" className="text-primary"/>:<Bookmark/>}</button></div><Link href={`/colleges/${c.id}`}><h3 className="mt-4 font-semibold group-hover:text-primary">{c.name}</h3><p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin data-icon="inline-start"/> {c.city}, {c.state}</p></Link><div className="mt-4 flex items-center gap-4 text-sm"><span className="flex items-center gap-1 font-semibold"><Star fill="currentColor" className="text-amber-500"/> {c.rating}</span><span className="text-muted-foreground">{c.reviews} reviews</span></div><div className="mt-4 flex items-center justify-between border-t pt-3 text-sm"><span className="text-muted-foreground">Avg. fees <strong className="text-foreground">{c.fees}</strong></span><button onClick={onCompare} className="flex items-center gap-1 font-medium text-primary">{compared?<Check/>:<BarChart3/>} {compared?'Added':'Compare'}</button></div></article> }
-export default function Home() { const [q,setQ]=useState(''); const [saved,setSaved]=useState<string[]>([]); const [compare,setCompare]=useState<string[]>([]); const [type,setType]=useState('All types'); const [sort,setSort]=useState('Top rated'); useEffect(()=>{ setSaved(readIds('campusfind-saved')); setCompare(readIds('campusfind-compare')) },[]); const filtered=colleges.filter(c=>(!q||`${c.name} ${c.city} ${c.state} ${c.courses.join(' ')}`.toLowerCase().includes(q.toLowerCase()))&&(type==='All types'||c.type===type)).sort((a,b)=>sort==='Top rated'?b.rating-a.rating:a.name.localeCompare(b.name)); const toggle=(id:string,key:string,setter:any,current:string[])=>{const next=current.includes(id)?current.filter(x=>x!==id):key==='compare'&&current.length>=3?current:[...current,id];setter(next);writeIds(`campusfind-${key}`,next)}; return <><Header savedCount={saved.length} compareCount={compare.length}/><main><section className="border-b bg-muted/40"><div className="mx-auto max-w-7xl px-5 py-16 md:py-24"><div className="max-w-2xl"><p className="mb-5 flex items-center gap-2 text-sm font-semibold text-primary"><GraduationCap/> Make your next move count</p><h1 className="text-balance text-4xl font-semibold tracking-tight md:text-6xl">Find a college that feels like <span className="text-primary">your place.</span></h1><p className="mt-5 max-w-xl text-pretty text-lg leading-8 text-muted-foreground">Compare courses, costs, campus life, and student reviews — all in one clear, honest place.</p></div><div className="mt-9 flex max-w-3xl flex-col gap-3 rounded-2xl border bg-background p-3 shadow-sm md:flex-row"><div className="flex flex-1 items-center gap-3 px-3"><Search className="text-muted-foreground"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search colleges, cities, or courses" className="w-full bg-transparent py-3 outline-none"/></div><button onClick={()=>document.getElementById('results')?.scrollIntoView({behavior:'smooth'})} className="rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground">Search colleges</button></div><div className="mt-5 flex flex-wrap gap-2 text-sm text-muted-foreground"><span>Popular:</span>{['Engineering','MBA','Delhi','Bengaluru'].map(x=><button key={x} onClick={()=>setQ(x)} className="rounded-full border bg-background px-3 py-1.5 hover:border-primary hover:text-primary">{x}</button>)}</div></div></section><section id="results" className="mx-auto max-w-7xl px-5 py-14"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><p className="text-sm font-semibold text-primary">EXPLORE WITH CONFIDENCE</p><h2 className="mt-2 text-3xl font-semibold tracking-tight">Popular colleges</h2><p className="mt-2 text-muted-foreground">A handpicked starting point for your shortlist.</p></div><div className="flex gap-2"><select value={type} onChange={e=>setType(e.target.value)} className="rounded-lg border bg-background px-3 py-2 text-sm"><option>All types</option><option>Government</option><option>Private</option></select><select value={sort} onChange={e=>setSort(e.target.value)} className="rounded-lg border bg-background px-3 py-2 text-sm"><option>Top rated</option><option>Name</option></select></div></div><div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{filtered.slice(0,8).map(c=><CollegeCard key={c.id} c={c} saved={saved.includes(c.id)} compared={compare.includes(c.id)} onSave={()=>toggle(c.id,'saved',setSaved,saved)} onCompare={()=>toggle(c.id,'compare',setCompare,compare)}/>)}</div><div className="mt-10 flex items-center justify-center"><Link href="/colleges" className="flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium hover:bg-muted">View all colleges <ArrowRight/></Link></div></section><section className="border-y bg-card"><div className="mx-auto grid max-w-7xl gap-8 px-5 py-14 md:grid-cols-3"><div><Users className="text-primary"/><h3 className="mt-4 font-semibold">Built for real decisions</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Clear information without the noise, so your shortlist feels like yours.</p></div><div><SlidersHorizontal className="text-primary"/><h3 className="mt-4 font-semibold">Filter what matters</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Find the right fit by city, course, budget, and campus type.</p></div><div><Building2 className="text-primary"/><h3 className="mt-4 font-semibold">Compare side by side</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Keep your options together and make a confident call.</p></div></div></section></main><footer className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-sm text-muted-foreground md:flex-row md:justify-between"><span>© 2026 CampusFind</span><span>Made for the next generation of students.</span></footer></> }
+const quickLinks = [
+  { label: "Engineering", href: "/colleges?streams=Engineering&sort=rank" },
+  { label: "Management", href: "/colleges?streams=Management&sort=rank" },
+  { label: "Medical", href: "/colleges?streams=Medical&sort=rank" },
+  { label: "Under ₹2L fees", href: "/colleges?maxFees=200000&sort=fees-asc" },
+  { label: "Government only", href: "/colleges?types=Government&sort=rating" },
+]
+
+const capabilities = [
+  {
+    icon: Sparkles,
+    title: "Type-ahead search",
+    body: "Debounced queries with grouped suggestions for colleges, cities, courses, and entrance exams.",
+  },
+  {
+    icon: SlidersHorizontal,
+    title: "Faceted filters",
+    body: "Stream, type, state, exam, fee ceiling, and rating filters with live result counts kept in the URL.",
+  },
+  {
+    icon: BarChart3,
+    title: "Side-by-side compare",
+    body: "Shortlist up to four colleges and see the best value in every row highlighted automatically.",
+  },
+]
+
+const featured = [...colleges].sort((a, b) => b.rating - a.rating).slice(0, 6)
+
+export default function HomePage() {
+  const router = useRouter()
+  const saved = useSelection("saved")
+  const compare = useSelection("compare")
+  const [term, setTerm] = useState("")
+
+  const submit = (value: string) => {
+    const trimmed = value.trim()
+    router.push(trimmed ? `/colleges?q=${encodeURIComponent(trimmed)}` : "/colleges")
+  }
+
+  return (
+    <div className="flex flex-col">
+      <section className="border-b bg-muted/40">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-16 md:py-24">
+          <div className="max-w-2xl">
+            <p className="mb-5 flex items-center gap-2 text-sm font-semibold text-primary">
+              <GraduationCap className="size-4" />
+              Make your next move count
+            </p>
+            <h1 className="text-4xl font-semibold tracking-tight text-balance md:text-6xl">
+              Find a college that feels like <span className="text-primary">your place.</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
+              Search 40+ Indian institutions, filter on the things that actually decide your choice, and compare
+              shortlists side by side.
+            </p>
+          </div>
+
+          <div className="flex max-w-2xl flex-col gap-3 sm:flex-row">
+            <SearchInput value={term} onChange={setTerm} onSubmit={submit} className="flex-1" />
+            <Button size="lg" onClick={() => submit(term)}>
+              Search
+              <ArrowRight data-icon="inline-end" />
+            </Button>
+          </div>
+
+          <ul className="flex flex-wrap items-center gap-2">
+            {quickLinks.map((link) => (
+              <li key={link.label}>
+                <Link
+                  href={link.href}
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full bg-background")}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-7xl px-5 py-14">
+        <ul className="grid gap-4 md:grid-cols-3">
+          {capabilities.map(({ icon: Icon, title, body }) => (
+            <li key={title} className="flex flex-col gap-3 rounded-2xl border bg-card p-5">
+              <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
+                <Icon className="size-5" />
+              </span>
+              <h2 className="font-semibold">{title}</h2>
+              <p className="text-sm leading-relaxed text-muted-foreground text-pretty">{body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mx-auto w-full max-w-7xl px-5 pb-20">
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">Top rated right now</h2>
+            <p className="mt-1 text-muted-foreground text-pretty">
+              Save any college to your shortlist or add it to the comparison tray.
+            </p>
+          </div>
+          <Link href="/colleges" className={cn(buttonVariants({ variant: "outline" }))}>
+            See all colleges
+            <ArrowRight data-icon="inline-end" />
+          </Link>
+        </header>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {featured.map((college) => (
+            <CollegeCard
+              key={college.id}
+              college={college}
+              saved={saved.has(college.id)}
+              compared={compare.has(college.id)}
+              compareDisabled={compare.isFull}
+              onSave={saved.toggle}
+              onCompare={compare.toggle}
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
